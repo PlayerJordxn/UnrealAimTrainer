@@ -35,14 +35,16 @@
 *.sdf
 *.sln
 *.abc
- 
+*.ipch
+*.vsidx
+
 # Precompiled Assets
 SourceArt/**/*.png
 SourceArt/**/*.tga
  
 # Binary Files
 Binaries/*
- 
+
 # Builds
 Build/*
  
