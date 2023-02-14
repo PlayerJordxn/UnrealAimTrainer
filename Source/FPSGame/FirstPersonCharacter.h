@@ -64,7 +64,7 @@ public:
 	bool bIsAiming = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Variables")
-		bool bIsShooting = false;
+	bool bIsShooting = false;
 
 
 };
