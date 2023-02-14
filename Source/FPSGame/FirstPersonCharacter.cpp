@@ -6,6 +6,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "BaseSecondaryWeapon.h"
 #include "GameFramework/Actor.h"
+#include "GameFramework/Controller.h"
 
 // Sets default values
 AFirstPersonCharacter::AFirstPersonCharacter()
@@ -23,17 +24,16 @@ void AFirstPersonCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	ABaseSecondaryWeapon* Pistol = GetWorld()->SpawnActor<ABaseSecondaryWeapon>(SecondaryWeapon);
-	if (Pistol)
+	//Try cast to secondary weapon
+	ABaseSecondaryWeapon* MainWeapon = GetWorld()->SpawnActor<ABaseSecondaryWeapon>(PrimaryWeapon);
+	//Try cast to primary weapon
+
+	if (MainWeapon)
 	{
-		Pistol->SetActorEnableCollision(false);
-		Pistol->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, "SOCKET_Weapon");
+		MainWeapon->SetActorEnableCollision(false);
+		MainWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, "SOCKET_Weapon");
 	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Pistol is nullptr"));
-	}
-	
+	OnWeaponSpawnEvent();
 }
 
 // Called every frame
@@ -41,7 +41,10 @@ void AFirstPersonCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	HorizontalInputValue = AActor::GetInputAxisValue(TEXT("MoveRight"));
+	VerticalInputValue = AActor::GetInputAxisValue(TEXT("MoveForward"));
 }
+
 
 // Called to bind functionality to input
 void AFirstPersonCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -50,45 +53,44 @@ void AFirstPersonCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInp
 
 	PlayerInputComponent->BindAxis("MoveForward", this, &AFirstPersonCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &AFirstPersonCharacter::MoveRight);
-	PlayerInputComponent->BindAxis("LookRight", this, &AFirstPersonCharacter::LookRight);
-	PlayerInputComponent->BindAxis("LookUp", this, &AFirstPersonCharacter::LookUp);
+	PlayerInputComponent->BindAxis("LookRight", this, &AFirstPersonCharacter::AddControllerYawInput);
+	PlayerInputComponent->BindAxis("LookUp", this, &AFirstPersonCharacter::AddControllerPitchInput);
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
-	PlayerInputComponent->BindAction("OnRun", IE_Pressed, this, &AFirstPersonCharacter::OnRun);
-	PlayerInputComponent->BindAction("EndRun", IE_Released, this, &AFirstPersonCharacter::EndRun);
+	PlayerInputComponent->BindAction("OnAim", IE_Pressed, this, &AFirstPersonCharacter::OnAim);
+	PlayerInputComponent->BindAction("EndAim", IE_Released, this, &AFirstPersonCharacter::EndAim);
+	PlayerInputComponent->BindAction("OnShoot", IE_Pressed, this, &AFirstPersonCharacter::OnShootEvent);
 
-}
 
-void AFirstPersonCharacter::LookUp(float Value)
-{
-	AddControllerPitchInput(Value * MouseSensitivity);
-}
-
-void AFirstPersonCharacter::LookRight(float Value) 
-{
-	AddControllerYawInput(Value * MouseSensitivity);
 }
 
 void AFirstPersonCharacter::MoveForward(const float Value)
 {
 	FVector Forward = GetActorForwardVector();
-	AddMovementInput(Forward, Value);
+	AddMovementInput(Forward * Value);
 }
 
 void AFirstPersonCharacter::MoveRight(const float Value)
 {
 	FVector Right = GetActorRightVector();
-	AddMovementInput(Right, Value);
+	AddMovementInput(Right * Value);
 }
 
-void AFirstPersonCharacter::OnRun()
+void AFirstPersonCharacter::OnAim()
 {
-	UCharacterMovementComponent* Movement = Cast<UCharacterMovementComponent>(GetCharacterMovement());
-	Movement->MaxWalkSpeed = Movement->MaxWalkSpeed * 2;
+	bIsAiming = true;
 }
 
-void AFirstPersonCharacter::EndRun()
+void AFirstPersonCharacter::EndAim()
 {
-	UCharacterMovementComponent* Movement = Cast<UCharacterMovementComponent>(GetCharacterMovement());
-	Movement->MaxWalkSpeed = Movement->MaxWalkSpeed / 2;
+	bIsAiming = false;
 }
+
+float AFirstPersonCharacter::LerpValue(float From, float To, float Aplha)
+{
+	float lerpedvalue = FMath::Lerp(From, To, Aplha);
+	return lerpedvalue;
+}
+
+
+
 

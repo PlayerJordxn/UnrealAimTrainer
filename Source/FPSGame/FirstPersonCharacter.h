@@ -28,24 +28,43 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-private:
+public:
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UCameraComponent* Camera;
 
-	void LookUp(float Value) ;
-	void LookRight(float Value);
 	void MoveForward(const float Value);
 	void MoveRight(const float Value);
-	void OnRun();
-	void EndRun();
 
+	void OnAim();
+	void EndAim();
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	float HorizontalInputValue;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	float VerticalInputValue;
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnShootEvent();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnWeaponSpawnEvent();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnReloadEvent();
+
+	UFUNCTION(BlueprintCallable)
+	float LerpValue(float From, float To, float Aplha);
 
 	UPROPERTY(EditAnywhere)
-	float MouseSensitivity = 5.f;
+	TSubclassOf<class ABaseSecondaryWeapon> PrimaryWeapon;
 
-	UPROPERTY(EditAnywhere)
-	float WalkSpeedMultiplier = 1.2f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Variables")
+	bool bIsAiming = false;
 
-	UPROPERTY(EditAnywhere)
-	TSubclassOf<class ABaseSecondaryWeapon> SecondaryWeapon;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Variables")
+		bool bIsShooting = false;
+
+
 };
